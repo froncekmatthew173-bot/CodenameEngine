@@ -2055,8 +2055,7 @@ class PlayState extends MusicBeatState
 		else
 			event = EventManager.get(NoteHitEvent).recycle(rating.breaksCombo, false, false, null, null, null, note, strumLine.characters, false, note.noteType, note.animSuffix.getDefault(note.strumID < strumLine.members.length ? strumLine.members[note.strumID].animSuffix : strumLine.animSuffix), null, null, note.strumID, 0, null, 0, rating.name, false, null, null, null, null, true, iconP2, false);
 		event.deleteNote = !note.isSustainNote; // work around, to allow sustain notes to be deleted
-		if (botplaying) { // Botplay shouldn't affect score, accuracy nor hits, but it should only ever heal the player
-			event.countScore = false;
+		if (botplaying) { // Botplay shouldn't affect accuracy nor hits, but it should still heal the player and give score
 			event.accuracy = null;
 			event.healthGain = Math.abs(event.healthGain);
 		}
