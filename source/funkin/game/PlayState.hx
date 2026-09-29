@@ -136,6 +136,10 @@ class PlayState extends MusicBeatState
 	 */
 	public var ghostTapping:Bool = Options.ghostTapping;
 	/**
+	 * Whenever Botplay is enabled, meaning the player strumlines will be played automatically.
+	 */
+	public var botplay:Bool = Options.botplay;
+	/**
 	 * Whenever the opponent can die.
 	 */
 	public var canDadDie:Bool = opponentMode && !coopMode;
@@ -355,6 +359,22 @@ class PlayState extends MusicBeatState
 	 * FunkinText that shows your accuracy.
 	 */
 	public var accuracyTxt:FunkinText;
+	/**
+	 * FunkinText that shows whenever Botplay is enabled.
+	 */
+	public var botplayTxt:FunkinText;
+	/**
+	 * Used to fade `botplayTxt` in and out.
+	 */
+	public var botplaySine:Float = 0;
+	/**
+	 * FunkinText that shows whenever Botplay is enabled.
+	 */
+	public var botplayTxt:FunkinText;
+	/**
+	 * Used to make `botplayTxt` fade in and out.
+	 */
+	public var botplaySine:Float = 0;
 
 	/**
 	 * Score for the current week.
@@ -909,17 +929,21 @@ class PlayState extends MusicBeatState
 		accuracyTxt = new FunkinText(healthBarBG.x + 50, healthBarBG.y + 30, Std.int(healthBarBG.width - 100), TEXT_GAME_ACCURACY.format(["-%", "(N/A)"]), 16);
 		accuracyTxt.addFormat(accFormat, 0, 1);
 
-		for(text in [scoreTxt, missesTxt, accuracyTxt]) {
+		botplayTxt = new FunkinText(healthBarBG.x + 50, healthBarBG.y - 90, Std.int(healthBarBG.width - 100), TU.translate("game.botplay").toUpperCase(), 32);
+		botplayTxt.visible = botplay;
+
+		for(text in [scoreTxt, missesTxt, accuracyTxt, botplayTxt]) {
 			text.scrollFactor.set();
 			add(text);
 		}
 		scoreTxt.alignment = RIGHT;
 		missesTxt.alignment = CENTER;
 		accuracyTxt.alignment = LEFT;
+		botplayTxt.alignment = CENTER;
 		if (updateRatingStuff != null)
 			updateRatingStuff();
 
-		for(e in [healthBar, healthBarBG, iconP1, iconP2, scoreTxt, missesTxt, accuracyTxt])
+		for(e in [healthBar, healthBarBG, iconP1, iconP2, scoreTxt, missesTxt, accuracyTxt, botplayTxt])
 			e.cameras = [camHUD];
 		#end
 
@@ -1429,6 +1453,11 @@ class PlayState extends MusicBeatState
 	{
 		_ONE_ARG[0] = elapsed;
 		scripts.call("update", _ONE_ARG);
+
+		if (botplayTxt != null && botplayTxt.visible) {
+			botplaySine += 180 * elapsed;
+			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
+		}
 
 		if (inCutscene) {
 			super.update(elapsed);
@@ -1995,6 +2024,8 @@ class PlayState extends MusicBeatState
 
 		note.wasGoodHit = true;
 
+		final botplaying:Bool = strumLine != null && strumLine.botplay;
+
 		var noteDiff = Math.abs(Conductor.songPosition - note.strumTime), rating:Rating;
 		if (!Flags.USE_LEGACY_TIMING) rating = ratingManager.judgeNote(noteDiff);
 		else {
@@ -2032,6 +2063,11 @@ class PlayState extends MusicBeatState
 		else
 			event = EventManager.get(NoteHitEvent).recycle(rating.breaksCombo, false, false, null, null, null, note, strumLine.characters, false, note.noteType, note.animSuffix.getDefault(note.strumID < strumLine.members.length ? strumLine.members[note.strumID].animSuffix : strumLine.animSuffix), null, null, note.strumID, 0, null, 0, rating.name, false, null, null, null, null, true, iconP2, false);
 		event.deleteNote = !note.isSustainNote; // work around, to allow sustain notes to be deleted
+		if (botplaying) { // Botplay shouldn't affect score, accuracy nor hits, but it should only ever heal the player
+			event.countScore = false;
+			event.accuracy = null;
+			event.healthGain = Math.abs(event.healthGain);
+		}
 		event = scripts.event(strumLine != null && !strumLine.cpu ? "onPlayerHit" : "onDadHit", event);
 		strumLine.onHit.dispatch(event);
 		gameAndCharsEvent("onNoteHit", event);
@@ -2067,7 +2103,7 @@ class PlayState extends MusicBeatState
 					displayRating(event.rating, event);
 					ratingNum += 1;
 				}
-				if (event.player) hits[rating.name] += 1;
+				if (event.player && !botplaying) hits[rating.name] += 1;
 			}
 
 			if (strumLine != null) strumLine.addHealth(event.healthGain);

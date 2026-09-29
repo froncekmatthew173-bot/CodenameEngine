@@ -47,6 +47,11 @@ class StrumLine extends FlxTypedGroup<Strum> {
 	 */
 	public var cpu(default, set):Bool = false;
 	/**
+	 * Whenever this strumline is being played automatically by Botplay.
+	 * Always `false` for CPU strumlines (since those are always played automatically).
+	 */
+	public var botplay(get, never):Bool;
+	/**
 	 * Whenever this strumline is from the opponent side or the player side.
 	 */
 	public var opponentSide:Bool = false;
@@ -228,7 +233,7 @@ class StrumLine extends FlxTypedGroup<Strum> {
 				daNote.tooLate = true;
 		}
 
-		if (cpu && __updateNote_event.__autoCPUHit && !daNote.avoid && !daNote.wasGoodHit && daNote.strumTime < __updateNote_songPos)
+		if ((cpu || botplay) && __updateNote_event.__autoCPUHit && !daNote.avoid && !daNote.wasGoodHit && daNote.strumTime < __updateNote_songPos)
 			PlayState.instance.goodNoteHit(this, daNote);
 
 		if (daNote.wasGoodHit && daNote.isSustainNote && daNote.strumTime + daNote.sustainLength < __updateNote_songPos && !daNote.noSustainClip) {
@@ -237,7 +242,7 @@ class StrumLine extends FlxTypedGroup<Strum> {
 		}
 
 		if (daNote.tooLate) {
-			if (!cpu) PlayState.instance.noteMiss(this, daNote);
+			if (!cpu && !botplay) PlayState.instance.noteMiss(this, daNote);
 			else deleteNote(daNote);
 			return;
 		}
@@ -293,7 +298,7 @@ class StrumLine extends FlxTypedGroup<Strum> {
 	public function updateInput(id:Int = 0) {
 		updateNotes();
 
-		if (cpu) return;
+		if (cpu || botplay) return;
 
 		final membersLength = members.length;
 
@@ -474,6 +479,8 @@ class StrumLine extends FlxTypedGroup<Strum> {
 				s.cpu = b;
 		return cpu = b;
 	}
+	private inline function get_botplay():Bool
+		return !cpu && PlayState.instance != null && PlayState.instance.botplay;
 	private inline function set_animSuffix(str:String):String {
 		for(s in members)
 			if (s != null)

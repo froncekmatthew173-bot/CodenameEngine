@@ -29,6 +29,7 @@ class Options
 	public static var downscroll:Bool = false;
 	public static var centeredFields:Bool = false;
 	public static var ghostTapping:Bool = true;
+	public static var botplay:Bool = false;
 	public static var flashingMenu:Bool = true;
 	public static var camZoomOnBeat:Bool = true;
 	public static var fpsCounter:Bool = true;

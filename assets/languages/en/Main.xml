@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <language>
 	<group name="PlayState">
+		<str id="game.botplay">Botplay</str>
 		<str id="game.score">Score:{0}</str>
 		<str id="game.misses">Misses:{0}</str>
 		<str id="game.comboBreaks">Combo Breaks:{0}</str>
