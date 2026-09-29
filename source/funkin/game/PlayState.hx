@@ -367,14 +367,6 @@ class PlayState extends MusicBeatState
 	 * Used to fade `botplayTxt` in and out.
 	 */
 	public var botplaySine:Float = 0;
-	/**
-	 * FunkinText that shows whenever Botplay is enabled.
-	 */
-	public var botplayTxt:FunkinText;
-	/**
-	 * Used to make `botplayTxt` fade in and out.
-	 */
-	public var botplaySine:Float = 0;
 
 	/**
 	 * Score for the current week.
